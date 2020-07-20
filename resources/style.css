@@ -1,10 +1,4 @@
 @font-face {
-  font-family: "ABCSans Regular";
-  font-style: normal;
-  font-weight: normal;
-  src: local("ABCSans Regular"), url("./abcsans-regular.woff") format("woff");
-}
-@font-face {
   font-family: "ABCSans Black";
   font-style: normal;
   font-weight: normal;
@@ -13,7 +7,6 @@
 :root {
   font-size: 1em;
   font-family: "ABCSans Black", "Arial Black", sans-serif;
-  color: #1C1C1C;
 }
 body {
   margin: 0;
@@ -33,32 +26,61 @@ body {
   width: 100%;
   height:100%;
 }
-.electorate {
-  stroke: white;
-  stroke-width: 2;
-  opacity: .67;
-}
-.electorate:hover {
-  opacity: 1;
-}
-#yerrabi.electorate {
+.wildlife {
+  opacity: 0;
   fill: #01CFFF;
 }
-#ginninderra.electorate {
-  fill: #FF6100;
+#ticker {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 5px;
+  font-size: 2rem;
+  text-shadow: 2px 2px 5px #1C1C1C;
 }
-#kurrajong.electorate {
-  fill: #00B395;
+@font-face {
+  font-family: "ABCSans Black";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
 }
-#murrumbidgee.electorate {
-  fill: #FFB300;
-}
-#brindabella.electorate {
-  fill: #248BC9;
-}
-.label {
-  fill: white;
-  font-size: 1.2rem;
-  text-anchor: middle;
+:root {
+  font-size: 1em;
   font-family: "ABCSans Black", "Arial Black", sans-serif;
+  color: white;
+}
+body {
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+#map, #svg {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height:100%;
+}
+.wildlife {
+  fill: #01CFFF;
+}
+#ticker {
+  position: fixed;
+  top: .5rem;
+  right: .5rem;
+  padding: 5px;
+  font-size: 1.5rem;
+  text-shadow: 2px 2px 5px #1C1C1C;
+  color: white;
+}
+@media only screen and (min-width: 500px) {
+  #ticker {
+    font-size: 2rem;
+  }
 }
