@@ -4,50 +4,21 @@
   font-weight: normal;
   src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
 }
-:root {
-  font-size: 1em;
-  font-family: "ABCSans Black", "Arial Black", sans-serif;
-}
-body {
-  margin: 0;
-  padding: 0;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-#map, #svg {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height:100%;
-}
-.wildlife {
-  opacity: 0;
-  fill: #01CFFF;
-}
-#ticker {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  padding: 5px;
-  font-size: 2rem;
-  text-shadow: 2px 2px 5px #1C1C1C;
-}
 @font-face {
-  font-family: "ABCSans Black";
+  font-family: "ABCSans Regular";
   font-style: normal;
   font-weight: normal;
-  src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
+  src: local("ABCSans Regular"), url("./abcsans-regular.woff") format("woff");
+}
+@font-face {
+  font-family: "ABCSans Light";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Light"), url("./abcsans-light.woff") format("woff");
 }
 :root {
+  font-family: "ABCSans Regular", "Arial", sans-serif;
   font-size: 1em;
-  font-family: "ABCSans Black", "Arial Black", sans-serif;
-  color: white;
 }
 body {
   margin: 0;
@@ -58,7 +29,7 @@ body {
   left: 0;
   right: 0;
 }
-#map, #svg {
+#map {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -67,20 +38,18 @@ body {
   width: 100%;
   height:100%;
 }
-.wildlife {
-  fill: #01CFFF;
+.border {
+  fill: none;
+  stroke: rgba(28, 28, 28, .5);
+  stroke-dasharray: 1 2;
 }
-#ticker {
-  position: fixed;
-  top: .5rem;
-  right: .5rem;
-  padding: 5px;
-  font-size: 1.5rem;
-  text-shadow: 2px 2px 5px #1C1C1C;
-  color: white;
+.suburb {
+  fill: none;
+  stroke: rgba(28, 28, 28, .5);
 }
-@media only screen and (min-width: 500px) {
-  #ticker {
-    font-size: 2rem;
-  }
+.parkland {
+  fill: rgba(28, 28, 28, .05);
+}
+.water {
+  fill: rgba(28, 28, 28, .5);
 }
