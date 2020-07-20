@@ -16,116 +16,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Initial scripts -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
     <link href="./resources/style.css" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
   </head>
   <body>
     <!-- Initial page layout -->
-    <div id="map"></div>
-    <div id="ticker"></div>
+    <div id="container">
+      <svg id="map">
+        <g id="mapGroup"></g>
+      </svg>
+    </div>
     <script>
-      // load data
-      d3.json("./resources/wildlife.geojson", function(error, data) {
-        if (error) throw error;
-        wildlifeData = data;
-        // date variables
-        days = d3.timeDay
-          .range(new Date("2015-12-04"), new Date("2019-05-31"))
-          .map(function(d) { return d3.timeFormat("%Y-%m-%d")(d); });
-        day = 0;
-        ticker = d3.select("#ticker");
-        ticker.text("Dec 2015");
-        // set up MapBox engine
-        mapboxgl.accessToken = "pk.eyJ1IjoibmV3cy1vbjFpbmUiLCJhIjoiR3FlZFZlVSJ9._30EFE9XYhQitqf4gzRG-g";
-        map = new mapboxgl.Map({
-          container: "map",
-          style: "mapbox://styles/mapbox/dark-v10",
-          center: [149.106944, -35.323056],
-          attributionControl: false,
-          zoom: document.body.getBoundingClientRect().width < 500 ? 9.75 : 10.25,
-          interactive: false
+      d3.queue()
+        .defer(d3.json, "./resources/border.topojson")
+        .defer(d3.json, "./resources/suburbs.topojson")
+        .defer(d3.json, "./resources/suburbBorder.topojson")
+        .defer(d3.json, "./resources/mesh.topojson")
+        .defer(d3.json, "./resources/schools.topojson")
+        .awaitAll(function(error, data) {
+          // map data
+          borderData = topojson
+            .feature(data[0], data[0].objects.border);
+          suburbData = topojson
+            .feature(data[1], data[1].objects.suburbs);
+          suburbBorderData = topojson
+            .feature(data[2], data[2].objects.suburbs);
+          meshData = topojson
+            .feature(data[3], data[3].objects.mesh);
+          schoolData = topojson
+            .feature(data[4], data[4].objects.schools);
+          // page elements
+          map = d3.select("#map");
+          mapGroup = d3.select("#mapGroup");
+          // map functions
+          projection = d3.geoIdentity();
+          path = d3.geoPath();
+          // prepare map
+          border = mapGroup
+            .selectAll(".border")
+              .data(borderData.features)
+            .enter().append("path")
+              .classed("border", true);
+          suburbs = mapGroup
+            .selectAll(".suburb")
+              .data(suburbData.features.concat(suburbBorderData.features))
+            .enter().append("path")
+              .classed("suburb", true);
+          mesh = mapGroup
+            .selectAll(".mesh")
+              .data(meshData.features)
+            .enter().append("path")
+              .attr("class", function(d) { return d.properties.class; });
+          // page dimensions
+          window.addEventListener("resize", resize);
+          resize();
         });
-        // add navigation and custom attribution
-        map.on("load", function() {
-          map.addControl(new mapboxgl.AttributionControl({
-              compact: true
-            }))
-            .resize();
-          let attribution = d3.select(".mapboxgl-ctrl-attrib-inner");
-          attribution.html("&copy; ACT Government <a href='https://creativecommons.org/licenses/by/4.0/'>(CC BY 4.0)</a> | " + attribution.html());
-          attribution.html(attribution.html().slice(0, -250));
-          // svg layer
-          container = map.getCanvasContainer();
-          svg = d3.select(container)
-            .append("svg")
-            .attr("id", "svg");
-          svgGroup = svg
-            .append("g")
-            .attr("id", "svgGroup");
-          // map calculations
-          margin = { top: 16, bottom: 16, left: 16, right: 16 };
-          projection = calcProjection();
-          path = d3.geoPath()
-            .pointRadius(width < 500 ? 2.5 : 5);
-          // re-render SVGs upon movement
-          map.on("viewreset", render)
-            .on("move", render)
-            .on("move", render);
-          render();
-          d3.timeout(timer, 2000);
-        });
-      });
-
-      // begin animation
-      function timer() {
-        interval = d3.interval(function() {
-          ticker.text(d3.timeFormat("%b %Y")(d3.timeParse("%Y-%m-%d")(days[day])));
-          drawWildlife();
-          if (days[day] !== "2019-05-31") {
-            day++;
-          } else {
-            interval.stop();
-            day = 0;
-            d3.timeout(timer, 2000);
-          }
-        }, 25);
-      }
-
-      // wildlife circles
-      function drawWildlife() {
-        wildlife = svgGroup
-          .selectAll(".wildlife")
-            .data(wildlifeData.features.filter(function(d) { return d.properties.date == days[day]; }), function(d) { return d.geometry.coordinates[1] + " " + d.properties.date; });
-        entering = wildlife
-          .enter().append("path")
-            .classed("wildlife", true)
-            .style("opacity", 1)
-            .attr("d", path)
-            .transition()
-              .duration(2000)
-              .style("opacity", 0)
-            .remove();
-      }
-
-      // re-renders SVG when map moves
-      function render() {
-        projection = calcProjection();
+      function resize() {
+        dimensions = document.body.getBoundingClientRect();
+        width = dimensions.width;
+        height = dimensions.height;
+        projection.fitSize([width, height], suburbData);
         path.projection(projection);
-        // draw SVGs
-        d3.selectAll(".wildlife")
-          .attr("d", path);
+        draw();
       }
-      // recalculates D3 map projection when map moves
-      function calcProjection() {
-        height = document.body.getBoundingClientRect().height;
-        width = document.body.getBoundingClientRect().width;
-        center = map.getCenter();
-        zoom = map.getZoom();
-        scale = 256 / Math.PI * Math.pow(2, zoom);
-        return d3.geoMercator()
-          .center([center.lng, center.lat])
-          .translate([width / 2, height / 2])
-          .scale(scale);
+      function draw() {
+        border.attr("d", path);
+        suburbs.attr("d", path);
+        mesh.attr("d", path);
       }
     </script>
   </body>
