@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-155991615-1');
+    </script>
+    <!-- my stuff -->
+    <meta charset="utf-8">
+    <title>Canberra's schools</title>
+    <meta name="author" content="Markus Mannheim">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Initial scripts -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <link href="./resources/mapStyle.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+  </head>
+  <body>
+    <!-- Initial page layout -->
+    <div id="container">
+      <svg id="map">
+        <g id="mapGroup"></g>
+      </svg>
+      <div id="selection">
+        <div class="option selected" value="P">PRIMARY</div>
+        <div class="option" value="H">HIGH</div>
+        <div class="option" value="C">COLLEGE</div>
+        <div class="option" value="A">ALL</div>
+      </div>
+      <svg id="legend">
+        <defs>
+          <linearGradient id="gradient" x1="0%" x2="100%" y1="0%" y2="0%"></linearGradient>
+        </defs>
+        <rect height=24 y=22></rect>
+        <g id="axisGroup" transform="translate(0, 46)">
+          <text id="axisLabel" y=-29>student enrolments</text>
+        </g>
+      </svg>
+      <div id="tip"></div>
+    </div>
+    <script>
+      d3.queue()
+        .defer(d3.json, "./resources/border.topojson")
+        .defer(d3.json, "./resources/suburbs.topojson")
+        .defer(d3.json, "./resources/suburbBorder.topojson")
+        .defer(d3.json, "./resources/mesh.topojson")
+        .defer(d3.json, "./resources/schools.topojson")
+        .awaitAll(function(error, data) {
+          // map data
+          borderData = topojson
+            .feature(data[0], data[0].objects.border);
+          suburbData = topojson
+            .feature(data[1], data[1].objects.suburbs);
+          suburbBorderData = topojson
+            .feature(data[2], data[2].objects.suburbs);
+          meshData = topojson
+            .feature(data[3], data[3].objects.mesh);
+          schoolData = topojson
+            .feature(data[4], data[4].objects.schools);
+          // page elements
+          map = d3.select("#map");
+          mapGroup = d3.select("#mapGroup");
+          legend = d3.select("#legend");
+          axisGroup = d3.select("#axisGroup");
+          axisLabel = d3.select("#axisLabel");
+          tip = d3.select("#tip");
+          d3.selectAll(".option")
+            .on("click", selectSchools);
+          // prepare map
+          border = mapGroup
+            .selectAll(".border")
+              .data(borderData.features)
+            .enter().append("path")
+              .classed("border", true);
+          suburbs = mapGroup
+            .selectAll(".suburb")
+              .data(suburbData.features.concat(suburbBorderData.features))
+            .enter().append("path")
+              .classed("suburb", true);
+          mesh = mapGroup
+            .selectAll(".mesh")
+              .data(meshData.features)
+            .enter().append("path")
+              .attr("class", function(d) { return d.properties.class; });
+          d3.selectAll(".water")
+            .raise();
+          // colours
+          range = d3.extent(schoolData.features, function(d) { return d.properties.use; });
+          x = d3.scaleLinear()
+            .domain(range);
+          colours = d3.scaleLinear()
+            .domain([range[0], (range[0] + range[1]) / 2, range[1]])
+            .range(["#01CFFF", "white", "#FF6100"])
+            .interpolate(d3.interpolateRgb);
+          axis = d3.axisBottom(x)
+            .ticks(5, ".0%")
+            .tickSizeOuter(0);
+          // legend
+          legend = d3.select("#legend");
+          d3.select("#gradient")
+            .selectAll("stop")
+              .data(d3.range(11))
+            .enter().append("stop")
+              .attr("offset", function(d) { return d * 10 + "%"; })
+              .attr("style", function(d) { return "stop-color: " + colours(range[0] + (range[1] - range[0]) * (d / 10)) + "; stop-opacity: 1;"; });
+          // map functions
+          window.addEventListener("resize", resize);
+          projection = d3.geoIdentity();
+          path = d3.geoPath()
+            .projection(projection);
+          voronoi = d3.voronoi()
+            .x(function(d) { return path.centroid(d)[0]; })
+            .y(function(d) { return path.centroid(d)[1]; });
+          // schools layout
+          type = "P";
+          filterSchools();
+        });
+      function resize() {
+        dimensions = document.body.getBoundingClientRect();
+        width = dimensions.width;
+        height = dimensions.height;
+        projection.fitExtent([[16, 56], [width - 16, height - 80]], schoolData);
+        path.pointRadius(width < 500 ? 5 : 8);
+        voronoi.size([width, height]);
+        x.range([width * .125, width * .875]);
+        axisLabel.attr("x", width / 2);
+        legend.select("rect")
+          .attr("x", width * .125)
+          .attr("width", width * .75);
+        draw();
+      }
+      function draw() {
+        border.attr("d", path);
+        suburbs.attr("d", path);
+        mesh.attr("d", path);
+        d3.selectAll(".school")
+          .attr("d", path);
+        axisGroup.call(axis);
+        schools = mapGroup
+          .selectAll(".school")
+            .data(voronoi.polygons(currentSchools), function(d) { return d.data.properties.school; });
+        schools.exit()
+          .remove();
+        entering = schools
+          .enter().append("g")
+            .classed("school", true);
+        entering.append("path")
+          .classed("point", true)
+            .style("fill", function(d) { return colours(d.data.properties.use); })
+            .attr("d", function(d) { return path(d.data); });
+        schools.select(".point")
+          .attr("d", function(d) { return path(d.data); });
+        entering.append("path")
+          .classed("cell", true)
+          .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; })
+          .on("mouseover", mouseover)
+          .on("mouseout", mouseout);
+        schools.select(".cell")
+          .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
+      }
+      function filterSchools() {
+        currentSchools = schoolData
+          .features
+          .filter(function(d) {
+            if (type == "A" || d.properties.type.includes(type)) {
+              return d;
+            }
+          });
+        resize();
+      }
+      function selectSchools() {
+        type = this.getAttribute("value");
+        d3.selectAll(".option")
+          .classed("selected", false);
+        d3.select(this)
+          .classed("selected", true);
+        filterSchools();
+      }
+      function mouseover(d) {
+        d3.select(this.parentNode)
+          .raise()
+          .select(".point")
+            .classed("selected", true);
+        centroid = path.centroid(d.data);
+        tip.style("opacity", 0)
+          .style("top", "0px") // reset position to tool tip for correct sizing
+          .style("left", "0px")
+          .html("<p>" + d.data.properties.school + "</p>"
+              + "<p>" + d3.format(",.0f")(d.data.properties.students) + " students</p>"
+              + "<p>" + d3.format(",.0f")(d.data.properties.capacity) + " capacity</p>");
+        // set location of tool tip to ensure it's always inside chart
+        let tipWidth = parseFloat(tip.style("width"));
+        let tipHeight = parseFloat(tip.style("height"));
+        tip.style("top", function() {
+          return centroid[1] + tipHeight + 32 > height ?
+            (centroid[1] - tipHeight - 32) + "px":
+            (centroid[1] + 16) + "px";
+          })
+          .style("left", function() {
+            return centroid[0] + (tipWidth / 2) + 16 > width ?
+              (width - tipWidth - 16) + "px" :
+              centroid[0] - (tipWidth / 2) - 16 < 0 ?
+              "16px" :
+              (centroid[0] - (tipWidth / 2)) + "px";
+          })
+          .style("opacity", 1);
+      }
+      function mouseout() {
+        d3.select(this.parentNode)
+          .select(".point")
+            .classed("selected", false);
+        tip.style("opacity", 0);
+      }
+    </script>
+  </body>
+</html>
