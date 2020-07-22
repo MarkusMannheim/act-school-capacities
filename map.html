@@ -95,8 +95,8 @@
           x = d3.scaleLinear()
             .domain(range);
           colours = d3.scaleLinear()
-            .domain([range[0], (range[0] + range[1]) / 2, range[1]])
-            .range(["#01CFFF", "white", "#FF6100"])
+            .domain(range)
+            .range(["white", "#FF6100"])
             .interpolate(d3.interpolateRgb);
           axis = d3.axisBottom(x)
             .ticks(5, ".0%")
@@ -192,6 +192,7 @@
           .style("top", "0px") // reset position to tool tip for correct sizing
           .style("left", "0px")
           .html("<p>" + d.data.properties.school + "</p>"
+              + "<p>" + d3.format(".0%")(d.data.properties.use) + " utilisation</p>"
               + "<p>" + d3.format(",.0f")(d.data.properties.students) + " students</p>"
               + "<p>" + d3.format(",.0f")(d.data.properties.capacity) + " capacity</p>");
         // set location of tool tip to ensure it's always inside chart
