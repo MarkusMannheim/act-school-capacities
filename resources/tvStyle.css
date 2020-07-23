@@ -91,6 +91,7 @@ body {
 .school {
   stroke: #1C1C1C;
   pointer-events: none;
+  opacity: 0;
 }
 #legend {
   position: absolute;
