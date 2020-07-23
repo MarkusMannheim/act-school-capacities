@@ -28,6 +28,16 @@
         <g id="mapGroup"></g>
       </svg>
     </div>
+    <div id="legend">
+      <div class="legendItem">
+        <div>above 90%</div>
+        <div class="circle"></div>
+      </div>
+      <div class="legendItem">
+        <div>below 50%</div>
+        <div class="circle"></div>
+      </div>
+    </div>
     <script>
       d3.queue()
         .defer(d3.json, "./resources/border.topojson")
@@ -88,7 +98,7 @@
         dimensions = document.body.getBoundingClientRect();
         width = dimensions.width;
         height = dimensions.height;
-        projection.fitExtent([[16, 56], [width - 16, height - 80]], schoolData);
+        projection.fitExtent([[0, 0], [width, height - 80]], schoolData);
         draw();
       }
       function draw() {
@@ -104,23 +114,13 @@
         schools.enter()
           .append("path")
             .classed("school", true)
+            .style("fill", function(d) { return d.properties.use > .9 ? "#01CFFF" : "#FF6100"; })
             .attr("d", path);
-        labels = mapGroup
-          .selectAll(".label")
-            .data(currentSchools, function(d) { return d.properties.school; })
-            .attr("x", function(d) { return path.centroid(d)[0] + 20; })
-            .attr("y", function(d) { return path.centroid(d)[1] + 5; });
-        labels.enter()
-          .append("text")
-            .classed("label", true)
-            .text(function(d) { return d.properties.school; })
-            .attr("x", function(d) { return path.centroid(d)[0] + 20; })
-            .attr("y", function(d) { return path.centroid(d)[1] + 5; });
       }
       function filterSchools() {
         currentSchools = schoolData
           .features
-          .filter(function(d) { return d.properties.use < .5; });
+          .filter(function(d) { return d.properties.use < .5 || d.properties.use > .9; });
         resize();
       }
     </script>
