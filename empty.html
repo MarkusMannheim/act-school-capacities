@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-155991615-1');
+    </script>
+    <!-- my stuff -->
+    <meta charset="utf-8">
+    <title>Canberra's schools</title>
+    <meta name="author" content="Markus Mannheim">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Initial scripts -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <link href="./resources/empty.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+  </head>
+  <body>
+    <!-- Initial page layout -->
+    <div id="container">
+      <svg id="map">
+        <g id="mapGroup"></g>
+      </svg>
+    </div>
+    <script>
+      d3.queue()
+        .defer(d3.json, "./resources/border.topojson")
+        .defer(d3.json, "./resources/suburbs.topojson")
+        .defer(d3.json, "./resources/suburbBorder.topojson")
+        .defer(d3.json, "./resources/mesh.topojson")
+        .defer(d3.json, "./resources/schools.topojson")
+        .awaitAll(function(error, data) {
+          // map data
+          borderData = topojson
+            .feature(data[0], data[0].objects.border);
+          suburbData = topojson
+            .feature(data[1], data[1].objects.suburbs);
+          suburbBorderData = topojson
+            .feature(data[2], data[2].objects.suburbs);
+          meshData = topojson
+            .feature(data[3], data[3].objects.mesh);
+          schoolData = topojson
+            .feature(data[4], data[4].objects.schools);
+          // page elements
+          map = d3.select("#map");
+          mapGroup = d3.select("#mapGroup");
+          // prepare map
+          border = mapGroup
+            .selectAll(".border")
+              .data(borderData.features)
+            .enter().append("path")
+              .classed("border", true);
+          suburbs = mapGroup
+            .selectAll(".suburb")
+              .data(suburbData.features.concat(suburbBorderData.features))
+            .enter().append("path")
+              .classed("suburb", true);
+          mesh = mapGroup
+            .selectAll(".mesh")
+              .data(meshData.features)
+            .enter().append("path")
+              .attr("class", function(d) { return d.properties.class; });
+          d3.selectAll(".water")
+            .raise();
+          // colours
+          range = d3.extent(schoolData.features, function(d) { return d.properties.use; });
+          colours = d3.scaleLinear()
+            .domain(range)
+            .range(["white", "#F75F00"])
+            .interpolate(d3.interpolateRgb);
+          // map functions
+          window.addEventListener("resize", resize);
+          projection = d3.geoIdentity();
+          path = d3.geoPath()
+            .projection(projection)
+            .pointRadius(10);
+          // schools layout
+          type = "A";
+          filterSchools();
+        });
+      function resize() {
+        dimensions = document.body.getBoundingClientRect();
+        width = dimensions.width;
+        height = dimensions.height;
+        projection.fitExtent([[50, 50], [width - 50, height - 50]], { type: "FeatureCollection", features: currentSchools });
+        draw();
+      }
+      function draw() {
+        border.attr("d", path);
+        suburbs.attr("d", path);
+        mesh.attr("d", path);
+        d3.selectAll(".school")
+          .attr("d", path);
+        schools = mapGroup
+          .selectAll(".school")
+            .data(currentSchools, function(d) { return d.properties.school; })
+            .attr("d", path);
+        schools.enter()
+          .append("path")
+            .classed("school", true)
+            .attr("d", path)
+            .transition()
+              .delay(function(d, i) { return i * 100 + 1000; })
+              .style("opacity", 1);
+        labels = mapGroup
+          .selectAll(".label")
+            .data(currentSchools, function(d) { return d.properties.school; })
+            .attr("x", function(d) { return path.centroid(d)[0]; })
+            .attr("y", function(d) { return path.centroid(d)[1] + 20; });
+        labels.enter()
+          .append("text")
+            .classed("label", true)
+            .text(function(d) { return d.properties.school; })
+            .attr("x", function(d) { return path.centroid(d)[0] + 20; })
+            .attr("y", function(d) { return path.centroid(d)[1] + 5; })
+            .transition()
+              .delay(function(d, i) { return i * 100 + 1000; })
+              .style("opacity", 1);
+      }
+      function filterSchools() {
+        currentSchools = schoolData
+          .features
+          .filter(function(d) { return d.properties.use < .5; })
+          .sort(function(a, b) { return d3.descending(a.properties.use, b.properties.use); });
+        resize();
+      }
+    </script>
+  </body>
+</html>
