@@ -115,12 +115,16 @@
           .append("path")
             .classed("school", true)
             .style("fill", function(d) { return d.properties.use > .9 ? "#01CFFF" : "#FF6100"; })
-            .attr("d", path);
+            .attr("d", path)
+            .transition()
+              .delay(function(d, i) { return i < 14 ? i * 100 + 2000 : i * 100 + 4000; })
+              .style("opacity", 1);
       }
       function filterSchools() {
         currentSchools = schoolData
           .features
-          .filter(function(d) { return d.properties.use < .5 || d.properties.use > .9; });
+          .filter(function(d) { return d.properties.use < .5 || d.properties.use > .9; })
+          .sort(function(a, b) { return d3.descending(a.properties.use, b.properties.use); });
         resize();
       }
     </script>
