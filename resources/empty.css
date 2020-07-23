@@ -1,0 +1,99 @@
+@font-face {
+  font-family: "ABCSans Black";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
+}
+@font-face {
+  font-family: "ABCSans Regular";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Regular"), url("./abcsans-regular.woff") format("woff");
+}
+@font-face {
+  font-family: "ABCSans Light";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Light"), url("./abcsans-light.woff") format("woff");
+}
+:root {
+  font-family: "ABCSans Regular", "Arial", sans-serif;
+  font-size: 1em;
+}
+body {
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
+#map {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height:100%;
+}
+#selection {
+  width: 100%;
+  padding: 0 0 10px 0;
+  background-color: white;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+}
+.option {
+  font-size: .8rem;
+  width: 4rem;
+  text-align: center;
+  font-weight: bold;
+  padding: 5px;
+  margin: 0 5px;
+  background-color: rgba(28, 28, 28, .25);
+  border-radius: 5px;
+  border: solid 1px #1C1C1C;
+  color: #1C1C1C;
+}
+.option:first-child {
+  margin: 0 5px 0 0;
+}
+.option:last-child {
+  margin: 0 0 0 5px;
+}
+.option:hover {
+  background-color: #01CFFF;
+}
+.option.selected {
+  background-color: #1C1C1C;
+  color: white;
+  pointer-events: none;
+}
+.border {
+  fill: none;
+  stroke: rgba(28, 28, 28, .5);
+  stroke-dasharray: 1 2;
+}
+.suburb {
+  fill: none;
+  stroke: rgba(28, 28, 28, .25);
+}
+.parkland {
+  fill: rgba(28, 28, 28, .05);
+}
+.water {
+  fill: rgba(28, 28, 28, .25);
+}
+.school {
+  stroke: #1C1C1C;
+  fill: #FF6100;
+  opacity: 0;
+}
+.label {
+  fill: #1C1C1C;
+  opacity: 0;
+}
