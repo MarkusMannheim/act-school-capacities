@@ -17,7 +17,7 @@
   src: local("ABCSans Light"), url("./abcsans-light.woff") format("woff");
 }
 :root {
-  font-family: "ABCSans Regular", "Arial", sans-serif;
+  font-family: "ABCSans Black", "Arial", sans-serif;
   font-size: 1em;
 }
 body {
@@ -89,13 +89,34 @@ body {
   fill: rgba(28, 28, 28, .25);
 }
 .school {
-  fill: #01CFFF;
   stroke: #1C1C1C;
   pointer-events: none;
 }
-.point.selected {
-  stroke-width: 2.5;
+#legend {
+  position: absolute;
+  top: 4rem;
+  right: 8rem;
+  text-align: right;
 }
-.label {
-  font-weight: bold;
+.legendItem {
+  display: flex;
+  font-size: 1.25rem;
+  color: #1C1C1C;
+}
+.legendItem div:first-child {
+  padding-top: .1rem
+}
+.circle {
+  background-color: #01CFFF;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 1.5rem;
+  border: solid 1px #1C1C1C;
+  margin: 0 0 .5rem .5rem;
+}
+.legendItem:last-child .circle {
+  background-color: #FF6100;
+}
+.legendItem:last-child {
+/*    color: #F75F00; */
 }
