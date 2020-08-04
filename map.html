@@ -93,10 +93,11 @@
           range = d3.extent(schoolData.features, function(d) { return d.properties.use; });
           x = d3.scaleLinear()
             .domain(range);
+          orange = d3.hsl("#FF6100");
           colours = d3.scaleLinear()
-            .domain(range)
-            .range(["white", "#F75F00"])
-            .interpolate(d3.interpolateRgb);
+            .domain([range[0], (range[0] + range[1]) / 2, range[1])
+            .range(["hsl(" + orange.h + ", " + (orange.s * 100) + "%, 100%)", "hsl(" + orange.h + ", " + (orange.s * 100) + "%, 50%)", "hsl(" + orage.h + ", " + (orange.s * 100) + "%, 0%)"])
+            .interpolate(d3.interpolateHsl);
           axis = d3.axisBottom(x)
             .ticks(5, ".0%")
             .tickSizeOuter(0);
