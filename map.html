@@ -96,7 +96,7 @@
           orange = d3.hsl("#FF6100");
           colours = d3.scaleLinear()
             .domain([range[0], (range[0] + range[1]) / 2, range[1]])
-            .range(["hsl(" + orange.h + ", " + (orange.s * 100) + "%, 100%)", "hsl(" + orange.h + ", " + (orange.s * 100) + "%, 50%)", "hsl(" + orage.h + ", " + (orange.s * 100) + "%, 0%)"])
+            .range(["hsl(" + orange.h + ", " + (orange.s * 100) + "%, 100%)", "hsl(" + orange.h + ", " + (orange.s * 100) + "%, 50%)", "hsl(" + orange.h + ", " + (orange.s * 100) + "%, 0%)"])
             .interpolate(d3.interpolateHsl);
           axis = d3.axisBottom(x)
             .ticks(5, ".0%")
